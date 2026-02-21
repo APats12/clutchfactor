@@ -111,6 +111,31 @@ async def seed() -> None:
         else:
             print("Sample game already seeded.")
 
+        # Seed demo game: DAL @ WAS, Week 18 2023
+        demo_id = uuid.UUID("00000000-0000-0000-0000-000000000002")
+        existing_demo = (
+            await session.execute(select(Game).where(Game.id == demo_id))
+        ).scalar_one_or_none()
+
+        if existing_demo is None and "DAL" in all_teams and "WAS" in all_teams:
+            demo_game = Game(
+                id=demo_id,
+                season=2023,
+                week=18,
+                home_team_id=all_teams["WAS"].id,
+                away_team_id=all_teams["DAL"].id,
+                status=GameStatus.in_progress,
+                nflfastr_game_id="2023_18_DAL_WAS",
+                scheduled_at=datetime(2024, 1, 7, 13, 0),
+                started_at=datetime(2024, 1, 7, 13, 5),
+                venue="FedExField",
+            )
+            session.add(demo_game)
+            await session.commit()
+            print(f"Seeded demo game: DAL @ WAS (id={demo_id})")
+        else:
+            print("Demo game already seeded.")
+
 
 if __name__ == "__main__":
     asyncio.run(seed())
