@@ -36,7 +36,7 @@ COPY backend/ .
 
 # Copy ML artifacts and demo data
 COPY ml/artifacts/ /app/artifacts/
-COPY ml/demo/ /ml/demo/
+COPY ml/demo/ /ml/data/
 
 EXPOSE 8000
 
