@@ -119,23 +119,54 @@ async def seed() -> None:
         ).scalar_one_or_none()
 
         if existing_demo is None and "DAL" in all_teams and "WAS" in all_teams:
-            demo_game = Game(
+            session.add(Game(
                 id=demo_id,
                 season=2023,
                 week=18,
                 home_team_id=all_teams["WAS"].id,
                 away_team_id=all_teams["DAL"].id,
-                status=GameStatus.in_progress,
+                status=GameStatus.final,
                 nflfastr_game_id="2023_18_DAL_WAS",
                 scheduled_at=datetime(2024, 1, 7, 13, 0),
                 started_at=datetime(2024, 1, 7, 13, 5),
+                final_home_score=10,
+                final_away_score=38,
                 venue="FedExField",
-            )
-            session.add(demo_game)
+            ))
             await session.commit()
-            print(f"Seeded demo game: DAL @ WAS (id={demo_id})")
+            print("Seeded demo game: DAL @ WAS")
+        elif existing_demo is not None:
+            existing_demo.status = GameStatus.final
+            existing_demo.final_home_score = 10
+            existing_demo.final_away_score = 38
+            await session.commit()
+            print("Updated DAL @ WAS to final")
+
+        # Seed game: LA Rams @ PHI Eagles, Week 3 2025
+        phi_id = uuid.UUID("00000000-0000-0000-0000-000000000003")
+        existing_phi = (
+            await session.execute(select(Game).where(Game.id == phi_id))
+        ).scalar_one_or_none()
+
+        if existing_phi is None and "LAR" in all_teams and "PHI" in all_teams:
+            session.add(Game(
+                id=phi_id,
+                season=2025,
+                week=3,
+                home_team_id=all_teams["PHI"].id,
+                away_team_id=all_teams["LAR"].id,
+                status=GameStatus.final,
+                nflfastr_game_id="2025_03_LA_PHI",
+                scheduled_at=datetime(2025, 9, 21, 13, 0),
+                started_at=datetime(2025, 9, 21, 13, 5),
+                final_home_score=33,
+                final_away_score=26,
+                venue="Lincoln Financial Field",
+            ))
+            await session.commit()
+            print("Seeded game: LA @ PHI 2025")
         else:
-            print("Demo game already seeded.")
+            print("LA @ PHI already seeded.")
 
         # Seed model version
         existing_mv = (
