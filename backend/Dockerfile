@@ -32,7 +32,11 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Copy application code
-COPY . .
+COPY backend/ .
+
+# Copy ML artifacts and demo data
+COPY ml/artifacts/ /app/artifacts/
+COPY ml/demo/ /ml/demo/
 
 EXPOSE 8000
 
