@@ -14,6 +14,7 @@ from app.config import get_settings
 from app.db.base import init_db, get_session_factory
 from app.db.models.team import Team
 from app.db.models.game import Game, GameStatus
+from app.db.models.model_version import ModelVersion
 
 NFL_TEAMS = [
     # AFC East
@@ -135,6 +136,25 @@ async def seed() -> None:
             print(f"Seeded demo game: DAL @ WAS (id={demo_id})")
         else:
             print("Demo game already seeded.")
+
+        # Seed model version
+        existing_mv = (
+            await session.execute(select(ModelVersion).where(ModelVersion.is_current.is_(True)))
+        ).scalar_one_or_none()
+
+        if existing_mv is None:
+            mv = ModelVersion(
+                id=uuid.uuid4(),
+                name="xgb_20260219_082135",
+                artifact_path="xgb_20260219_082135.joblib",
+                is_current=True,
+                trained_on_seasons=["2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023"],
+            )
+            session.add(mv)
+            await session.commit()
+            print(f"Seeded model version: {mv.name}")
+        else:
+            print(f"Model version already seeded: {existing_mv.name}")
 
 
 if __name__ == "__main__":
