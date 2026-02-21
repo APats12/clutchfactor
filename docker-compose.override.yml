@@ -1,0 +1,30 @@
+# Development overrides: hot-reload, volume mounts, no nginx
+services:
+  backend:
+    volumes:
+      - ./backend/app:/app/app
+      - ./backend/alembic:/app/alembic
+      - ./ml/artifacts:/artifacts
+      - ./ml/data:/ml/data
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+    environment:
+      LOG_LEVEL: DEBUG
+
+  celery-worker:
+    volumes:
+      - ./backend/app:/app/app
+      - ./ml/artifacts:/artifacts
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/vite.config.ts:/app/vite.config.ts
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_TARGET: http://backend:8000
+    command: npm run dev -- --host 0.0.0.0

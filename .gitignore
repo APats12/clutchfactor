@@ -1,0 +1,55 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+.python-version
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# uv
+uv.lock
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# ML data & artifacts (large files)
+ml/data/*.csv
+ml/data/*.csv.gz
+ml/data/*.parquet
+ml/artifacts/*.ubj
+ml/artifacts/*.json
+
+# Allow demo game data
+!ml/demo/*.csv
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Docker
+.docker/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Postgres
+pgdata/
