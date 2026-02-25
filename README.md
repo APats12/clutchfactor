@@ -1,45 +1,55 @@
-# ClutchFactor
+<div align="center">
+  <h1>🏈 ClutchFactor</h1>
+  <p><strong>Real-time NFL win-probability with play-by-play SHAP explainability.</strong></p>
 
-**Real-time NFL win-probability with play-by-play SHAP explainability.**
+  <a href="https://clutchfactor.vercel.app">
+    <img src="https://img.shields.io/badge/🚀%20Live%20Demo-000000?style=for-the-badge&logo=vercel&logoColor=white" height="35px" alt="Live Demo">
+  </a>
+</div>
+
+<h1></h1>
 
 Every play, ClutchFactor updates a live win-probability curve and surfaces the top model features driving the prediction — so you can see *why* the model thinks a team is about to win or lose, not just *that* it does.
 
-**[Live Demo →](https://clutchfactor.vercel.app)**
+---
+
+## How It Works
+
+ClutchFactor runs a full ML inference pipeline on every play:
+
+1. Raw play-by-play data is passed through a **14-feature extraction pipeline**
+2. An **XGBoost classifier** (calibrated with isotonic regression) predicts home win probability
+3. **Tree SHAP** computes the top 4 features explaining each prediction
+4. Updates are broadcast to the frontend in real time via **Server-Sent Events**
+
+```
+Play Data → Feature Extraction → XGBoost → Win Probability
+                                     ↓
+                               SHAP Values → Explainability Panel
+                                     ↓
+                              SSE Broadcast → Live Chart
+```
 
 ---
 
-## What it does
+## ✅ Features
 
-- **Live win-probability chart** — XGBoost model updates on every play, trained on 8 seasons of nflfastR play-by-play data (2016–2023)
-- **SHAP explainability panel** — Tree SHAP surfaces the top 4 features driving each prediction (field position, score differential, Vegas spread, time remaining, etc.)
-- **Momentum swings** — detects the biggest single-play WP shifts in the game
-- **Clutch index** — identifies the highest-leverage moments by quarter
-- **Decision grades** — grades 4th-down go/kick decisions against expected-value thresholds
-- **Replay mode** — stream any historical game through the full prediction pipeline in real time
-
----
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| ML model | XGBoost + Platt/isotonic calibration (scikit-learn) |
-| Explainability | SHAP TreeExplainer |
-| Backend | FastAPI, SQLAlchemy (async), Alembic, Celery |
-| Streaming | Server-Sent Events (SSE) |
-| Database | PostgreSQL |
-| Cache / broker | Redis |
-| Frontend | React 18, TypeScript, Vite, Recharts, Zustand |
-| Deployment | Railway (backend + DB + Redis) · Vercel (frontend) |
+- ✅ **Live win-probability chart** — XGBoost model updates on every play, trained on 8 seasons of nflfastR data (2016–2023, ~360K plays)
+- ✅ **SHAP explainability panel** — Tree SHAP surfaces the top 4 features driving each prediction
+- ✅ **Momentum swings** — detects the biggest single-play WP shifts in the game
+- ✅ **Clutch index** — identifies the highest-leverage moments by quarter
+- ✅ **Decision grades** — grades 4th-down go/kick decisions against expected-value thresholds
+- ✅ **Replay mode** — stream any historical game through the full prediction pipeline in real time
+- ✅ **Full API** — FastAPI backend with Swagger docs at `/docs`
 
 ---
 
-## Model
+## 🧠 The Model
 
-The model is an XGBoost binary classifier calibrated with isotonic regression. It predicts home-team win probability from 14 in-game features:
+XGBoost binary classifier calibrated with isotonic regression, predicting home-team win probability from 14 in-game features:
 
 | Feature | Description |
-|---|---|
+|---------|-------------|
 | `down` / `yards_to_go` | Current down and distance |
 | `yardline_100` | Field position (yards from opponent end zone) |
 | `game_seconds_remaining` | Total time left |
@@ -54,59 +64,35 @@ The model is an XGBoost binary classifier calibrated with isotonic regression. I
 | `diff_time_ratio` *(derived)* | `score_differential × (1 − game_seconds_remaining / 3600)` |
 | `ep` | Expected points for current possession |
 
-Training data: nflfastR seasons 2016–2023 (~360k plays).
+**Training data:** nflfastR seasons 2016–2023 · ~360,000 plays
 
 ---
 
-## Project structure
+## 🛠️ Tech Stack
 
-```
-clutchfactor/
-├── backend/
-│   ├── app/
-│   │   ├── api/          # FastAPI routers (games, predictions, replay, stream, admin)
-│   │   ├── db/
-│   │   │   ├── models/   # SQLAlchemy ORM models
-│   │   │   ├── seed.py   # Database seeder (teams, demo games, model version)
-│   │   │   └── base.py   # Engine + session factory
-│   │   ├── ml/
-│   │   │   ├── train.py       # XGBoost training + calibration
-│   │   │   ├── features.py    # Feature extraction pipeline
-│   │   │   ├── registry.py    # Model artifact loader + cache
-│   │   │   └── evaluate.py    # Brier score, log-loss
-│   │   └── services/
-│   │       ├── prediction_service.py
-│   │       ├── replay_service.py
-│   │       └── shap_service.py
-│   ├── alembic/          # Database migrations
-│   └── Dockerfile
-├── frontend/
-│   └── src/
-│       ├── components/
-│       │   └── game-detail/  # WpChart, ShapPanel, MomentumPanel, ClutchPanel, etc.
-│       ├── pages/            # GameList, GameDetail
-│       └── api/              # Typed API client
-├── ml/
-│   ├── artifacts/        # Trained model files (.joblib) — committed to repo
-│   ├── demo/             # Pre-extracted play-by-play CSVs for the 3 demo games
-│   └── data/             # Full nflfastR season CSVs (gitignored, large)
-├── infra/                # Postgres init.sql, Redis config
-├── docker-compose.yml
-└── Makefile
-```
+| Layer | Technology |
+|-------|-----------|
+| ML Model | XGBoost + Platt/isotonic calibration (scikit-learn) |
+| Explainability | SHAP TreeExplainer |
+| Backend | FastAPI, SQLAlchemy (async), Alembic, Celery |
+| Streaming | Server-Sent Events (SSE) |
+| Database | PostgreSQL |
+| Cache / Broker | Redis |
+| Frontend | React 18, TypeScript, Vite, Recharts, TailwindCSS |
+| Deployment | Railway (backend + DB + Redis) · Vercel (frontend) |
 
 ---
 
-## Running locally
+## 🚀 Run Locally
 
 ### Prerequisites
 
 - [Docker](https://docs.docker.com/get-docker/) + Docker Compose
 - `make` (comes with macOS/Linux; Windows: use WSL or Git Bash)
 
-### Quickstart (demo mode)
+### Quickstart (Demo Mode)
 
-This uses the three pre-bundled game CSVs — no data download needed.
+This uses three pre-bundled game CSVs — no data download needed.
 
 ```bash
 git clone https://github.com/APats12/clutchfactor.git
@@ -116,29 +102,27 @@ make demo
 
 `make demo` will:
 1. Copy the three demo CSVs into `ml/data/`
-2. Build and start all services (PostgreSQL, Redis, backend, frontend)
+2. Build and start all 5 services (PostgreSQL, Redis, backend, Celery worker, frontend)
 3. Seed the database with teams, game records, and the trained model version
-4. Stream all three historical games through the prediction pipeline at 50× speed (~30 s)
+4. Stream all three historical games through the prediction pipeline at 50× speed (~30s)
 
-Open **http://localhost:3000** and the games will be ready.
+Open **http://localhost:3000** — games will be ready.
 
-### Demo games
+```bash
+docker compose down   # stop everything
+```
+
+### Demo Games
 
 | Season | Game | Result |
-|---|---|---|
+|--------|------|--------|
 | 2022 | AFC Championship — CIN @ KC | KC 23 · CIN 20 |
 | 2023 | Week 18 — DAL @ WAS | DAL 38 · WAS 10 |
 | 2025 | Week 3 — LAR @ PHI | PHI 33 · LAR 26 |
 
-### Stopping
-
-```bash
-docker compose down
-```
-
 ---
 
-## Training your own model
+## 📬 Training Your Own Model
 
 To retrain on full play-by-play data:
 
@@ -155,17 +139,59 @@ make seed
 
 ---
 
-## API reference
+## 🗂️ Project Structure
 
-All endpoints are prefixed `/api/v1`. Full interactive docs at `/docs`.
+```
+clutchfactor/
+├── backend/
+│   ├── app/
+│   │   ├── api/              # FastAPI routers (games, predictions, replay, stream, admin)
+│   │   ├── db/
+│   │   │   ├── models/       # SQLAlchemy ORM models
+│   │   │   ├── seed.py       # Database seeder (teams, demo games, model version)
+│   │   │   └── base.py       # Engine + session factory
+│   │   ├── ml/
+│   │   │   ├── train.py      # XGBoost training + calibration
+│   │   │   ├── features.py   # Feature extraction pipeline
+│   │   │   ├── registry.py   # Model artifact loader + cache
+│   │   │   └── evaluate.py   # Brier score, log-loss
+│   │   └── services/
+│   │       ├── prediction_service.py
+│   │       ├── replay_service.py
+│   │       ├── shap_service.py
+│   │       ├── analytics_service.py  # Momentum, clutch, decision grades
+│   │       └── sse_manager.py        # SSE connection management
+│   ├── alembic/              # Database migrations
+│   └── Dockerfile
+├── frontend/
+│   └── src/
+│       ├── components/
+│       │   └── game-detail/  # WpChart, ShapPanel, MomentumPanel, ClutchPanel, etc.
+│       ├── pages/            # GamesPage, GameDetailPage
+│       └── api/              # Typed API client (Axios + React Query)
+├── ml/
+│   ├── artifacts/            # Trained model files (.joblib) — committed to repo
+│   ├── demo/                 # Pre-extracted play-by-play CSVs for 3 demo games
+│   └── data/                 # Full nflfastR season CSVs (gitignored, ~2 GB)
+├── infra/                    # Postgres init.sql, Redis config
+├── docker-compose.yml        # 5 services: postgres, redis, backend, celery-worker, frontend
+└── Makefile                  # Build, run, seed, train, lint commands
+```
+
+---
+
+## 📡 API Reference
+
+All endpoints are prefixed `/api/v1`. Interactive docs at `/docs`.
 
 | Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/games` | List games (filter by `season`, `week`, `status`) |
-| `GET` | `/games/{id}` | Game detail |
-| `GET` | `/games/{id}/wp-history` | Full WP history for a completed game |
-| `GET` | `/games/{id}/momentum-swings` | Top WP swings |
-| `GET` | `/games/{id}/clutch` | Clutch-index moments |
+|--------|----------|-------------|
+| `GET` | `/games` | List games (filter by `season`, `week`, `status`, `date`) |
+| `GET` | `/games/{id}` | Game detail with teams, score, status |
+| `GET` | `/games/{id}/plays` | All plays for a game |
+| `GET` | `/games/{id}/wp-history` | Full WP history with SHAP data |
+| `GET` | `/games/{id}/momentum-swings` | Top N plays by WP swing magnitude |
+| `GET` | `/games/{id}/clutch` | Clutch play rankings by quarter |
 | `GET` | `/games/{id}/decision-grades` | 4th-down decision grades |
 | `GET` | `/stream/games/{id}` | SSE stream for live WP updates |
 | `POST` | `/replay/{id}/start` | Start a historical replay |
@@ -176,16 +202,16 @@ All endpoints are prefixed `/api/v1`. Full interactive docs at `/docs`.
 
 ---
 
-## Environment variables
+## 🔑 Environment Variables
 
-The backend reads from `.env` (or Railway/Docker env vars). Key variables:
+The backend reads from `.env` (or Railway/Docker env). Copy `.env.example` to get started.
 
 | Variable | Default | Description |
-|---|---|---|
+|----------|---------|-------------|
 | `DATABASE_URL` | `postgresql+asyncpg://...` | Async Postgres connection string |
-| `REDIS_URL` | `redis://localhost:6379/0` | Redis for pub/sub |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis for pub/sub and Celery |
 | `MODEL_ARTIFACT_DIR` | `./ml/artifacts` | Directory containing `.joblib` model files |
 | `CORS_ORIGINS` | `["http://localhost:5173"]` | JSON array of allowed origins |
 | `REPLAY_SPEED_PLAYS_PER_SEC` | `1.0` | Default replay speed |
 
-Frontend reads `VITE_API_URL` — set to your backend's public URL in production (e.g., on Vercel: `https://clutchfactor-production.up.railway.app`).
+Frontend: set `VITE_API_URL` on Vercel to your backend's public URL (e.g., `https://clutchfactor-production.up.railway.app`).
